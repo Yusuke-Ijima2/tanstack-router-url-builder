@@ -17,7 +17,19 @@ const SORT_OPTIONS = [
   { value: "price-asc", label: "価格: 安い順" },
   { value: "price-desc", label: "価格: 高い順" },
   { value: "rating", label: "評価順" },
-];
+] as const;
+
+// 有効なソート値の配列（空文字列を除く）
+const VALID_SORT_VALUES: readonly string[] = SORT_OPTIONS.filter(
+  (opt) => opt.value !== ""
+).map((opt) => opt.value);
+
+// 型ガード関数: 値が有効なソート値かどうかをチェック
+function isValidSortValue(
+  value: string
+): value is NonNullable<SearchParams["sort"]> {
+  return VALID_SORT_VALUES.includes(value);
+}
 
 const TAGS = [
   "tech",
@@ -124,9 +136,15 @@ export function ProductFilters({ search, onUpdate }: ProductFiltersProps) {
         <select
           id="sort"
           value={search.sort || ""}
-          onChange={(e) =>
-            onUpdate({ sort: (e.target.value as any) || undefined })
-          }
+          onChange={(e) => {
+            const value = e.target.value;
+            // 空文字列の場合はundefined、それ以外は有効な値かチェック
+            if (value === "") {
+              onUpdate({ sort: undefined });
+            } else if (isValidSortValue(value)) {
+              onUpdate({ sort: value });
+            }
+          }}
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
