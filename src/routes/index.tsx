@@ -13,16 +13,11 @@ const searchParamsSchema = z.object({
   category: z.string().catch("").optional(), // カテゴリ
   minPrice: z.string().catch("").optional(), // 最低価格
   maxPrice: z.string().catch("").optional(), // 最高価格
-  sort: z
-    .enum(["name", "price-asc", "price-desc", "rating"])
-    .catch(undefined as any)
-    .optional(), // ソート順
+  sort: z.enum(["name", "price-asc", "price-desc", "rating"]).optional(), // ソート順
   page: z.string().catch("1").optional(), // ページ番号
   tags: z.array(z.string()).catch([]).optional(), // タグ（配列）
-  inStock: z
-    .enum(["true", "false"])
-    .catch(undefined as any)
-    .optional(), // 在庫ありのみ
+  inStock: z.enum(["true", "false"]).optional(), // 在庫ありのみ
+  selectedProductId: z.string().catch("").optional(), // 選択された商品ID
 });
 
 // 型推論でSearchParams型を生成
@@ -41,8 +36,19 @@ export const Route = createFileRoute("/")({
   component: App,
 });
 
+// 商品の型定義
+export type Product = {
+  id: number;
+  name: string;
+  category: string;
+  price: number;
+  rating: number;
+  tags: string[];
+  inStock: boolean;
+};
+
 // ダミーの商品データ
-const PRODUCTS = [
+export const PRODUCTS: Product[] = [
   {
     id: 1,
     name: "ノートパソコン",
@@ -158,6 +164,15 @@ function App() {
   const navigate = Route.useNavigate();
   const search = Route.useSearch();
 
+  // URLから選択された商品を取得
+  const selectedProduct = useMemo(() => {
+    if (search.selectedProductId) {
+      const productId = parseInt(search.selectedProductId);
+      return PRODUCTS.find((p) => p.id === productId) || null;
+    }
+    return null;
+  }, [search.selectedProductId]);
+
   // フィルタリングとソート
   const filteredProducts = useMemo(() => {
     let result = [...PRODUCTS];
@@ -232,6 +247,7 @@ function App() {
         ...updates,
         page: "1", // 検索条件変更時は1ページ目に戻す
       }),
+      resetScroll: false, // スクロール位置をリセットしない
     });
   };
 
@@ -250,25 +266,102 @@ function App() {
         </div>
 
         <div className="products-panel">
-          <div className="results-header">
-            <h2>
-              {filteredProducts.length}件の商品が見つかりました
-              {totalPages > 1 && ` (ページ ${page}/${totalPages})`}
-            </h2>
-          </div>
-          <ProductList
-            products={paginatedProducts}
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={(newPage) =>
-              navigate({
-                search: (prev) => ({
-                  ...prev,
-                  page: newPage.toString(),
-                }),
-              })
-            }
-          />
+          {selectedProduct ? (
+            <div className="product-detail-panel">
+              <div className="product-detail-header-inline">
+                <h3>商品詳細</h3>
+                <button
+                  className="close-detail-button"
+                  onClick={() =>
+                    navigate({
+                      search: (prev) => {
+                        const { selectedProductId, ...rest } = prev;
+                        return rest;
+                      },
+                      resetScroll: false,
+                    })
+                  }
+                >
+                  ✕ 商品一覧に戻る
+                </button>
+              </div>
+              <div className="product-detail-content">
+                <div className="product-detail-item-inline">
+                  <span className="label">商品名:</span>
+                  <span className="value">{selectedProduct.name}</span>
+                </div>
+                <div className="product-detail-item-inline">
+                  <span className="label">在庫状況:</span>
+                  <span
+                    className={`stock-badge ${selectedProduct.inStock ? "in-stock" : "out-of-stock"}`}
+                  >
+                    {selectedProduct.inStock ? "在庫あり" : "在庫なし"}
+                  </span>
+                </div>
+                <div className="product-detail-item-inline">
+                  <span className="label">カテゴリ:</span>
+                  <span className="value">
+                    📁{" "}
+                    {selectedProduct.category === "electronics"
+                      ? "電子機器"
+                      : "家具"}
+                  </span>
+                </div>
+                <div className="product-detail-item-inline">
+                  <span className="label">価格:</span>
+                  <span className="value price">
+                    ¥{selectedProduct.price.toLocaleString()}
+                  </span>
+                </div>
+                <div className="product-detail-item-inline">
+                  <span className="label">評価:</span>
+                  <span className="value">⭐ {selectedProduct.rating}</span>
+                </div>
+                <div className="product-detail-item-inline">
+                  <span className="label">タグ:</span>
+                  <div className="product-tags">
+                    {selectedProduct.tags.map((tag) => (
+                      <span key={tag} className="product-tag">
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="results-header">
+                <h2>
+                  {filteredProducts.length}件の商品が見つかりました
+                  {totalPages > 1 && ` (ページ ${page}/${totalPages})`}
+                </h2>
+              </div>
+              <ProductList
+                products={paginatedProducts}
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={(newPage) =>
+                  navigate({
+                    search: (prev) => ({
+                      ...prev,
+                      page: newPage.toString(),
+                    }),
+                    resetScroll: false, // スクロール位置をリセットしない
+                  })
+                }
+                onProductClick={(product) =>
+                  navigate({
+                    search: (prev) => ({
+                      ...prev,
+                      selectedProductId: product.id.toString(),
+                    }),
+                    resetScroll: false,
+                  })
+                }
+              />
+            </>
+          )}
         </div>
       </div>
 

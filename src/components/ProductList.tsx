@@ -13,6 +13,7 @@ interface ProductListProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onProductClick: (product: Product) => void;
 }
 
 export function ProductList({
@@ -20,6 +21,7 @@ export function ProductList({
   currentPage,
   totalPages,
   onPageChange,
+  onProductClick,
 }: ProductListProps) {
   const getCategoryLabel = (category: string) => {
     return category === "electronics" ? "電子機器" : "家具";
@@ -38,30 +40,36 @@ export function ProductList({
     <div className="product-list">
       <div className="products-grid">
         {products.map((product) => (
-          <div key={product.id} className="product-card">
-            <div className="product-header">
-              <h3>{product.name}</h3>
-              <span
-                className={`stock-badge ${product.inStock ? "in-stock" : "out-of-stock"}`}
-              >
-                {product.inStock ? "在庫あり" : "在庫なし"}
-              </span>
-            </div>
-            <div className="product-info">
-              <div className="product-category">
-                📁 {getCategoryLabel(product.category)}
-              </div>
-              <div className="product-price">
-                ¥{product.price.toLocaleString()}
-              </div>
-              <div className="product-rating">⭐ {product.rating}</div>
-            </div>
-            <div className="product-tags">
-              {product.tags.map((tag) => (
-                <span key={tag} className="product-tag">
-                  #{tag}
+          <div
+            key={product.id}
+            className="product-card-link"
+            onClick={() => onProductClick(product)}
+          >
+            <div className="product-card">
+              <div className="product-header">
+                <h3>{product.name}</h3>
+                <span
+                  className={`stock-badge ${product.inStock ? "in-stock" : "out-of-stock"}`}
+                >
+                  {product.inStock ? "在庫あり" : "在庫なし"}
                 </span>
-              ))}
+              </div>
+              <div className="product-info">
+                <div className="product-category">
+                  📁 {getCategoryLabel(product.category)}
+                </div>
+                <div className="product-price">
+                  ¥{product.price.toLocaleString()}
+                </div>
+                <div className="product-rating">⭐ {product.rating}</div>
+              </div>
+              <div className="product-tags">
+                {product.tags.map((tag) => (
+                  <span key={tag} className="product-tag">
+                    #{tag}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         ))}
