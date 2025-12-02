@@ -30,9 +30,7 @@ description: Git差分を分析して適切な粒度でコミットを作成（A
      - "What does this change do?" (too generic, focus on "why")
 6. If questions were asked, collect answers from the user for all questions
 7. Complete the commit message based on the answers (and session history)
-8. ALWAYS ask the user for confirmation before executing the commit
-9. After user confirms, execute the commit
-10. If there are remaining unstaged changes, return to step 4
+8. If there are remaining unstaged changes, return to step 4
 
 ## Commit Message Format
 
