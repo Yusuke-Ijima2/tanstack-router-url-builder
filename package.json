@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 3000",
-    "build": "vite build && tsc && cp dist/index.html dist/404.html",
+    "build": "vite build && tsc && node scripts/generate-404.js",
     "serve": "vite preview",
     "test": "vitest run"
   },
