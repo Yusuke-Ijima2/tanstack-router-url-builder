@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import { createBrowserHistory } from "@tanstack/react-router";
+import { createHashHistory } from "@tanstack/react-router";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
@@ -9,11 +9,11 @@ import { routeTree } from "./routeTree.gen";
 import "./styles.css";
 import reportWebVitals from "./reportWebVitals.ts";
 
-// Create browser history with base path
-const basePath = import.meta.env.BASE_URL || "/";
-const history = createBrowserHistory({
-  base: basePath,
-});
+// Create hash history for GitHub Pages compatibility
+// Hash routing works better with static hosting like GitHub Pages
+// because it doesn't require server-side routing configuration
+// See: https://stackoverflow.com/questions/77466065/using-tanstack-router-with-a-spa-in-github-pages
+const history = createHashHistory();
 
 // Create a new router instance
 const router = createRouter({
