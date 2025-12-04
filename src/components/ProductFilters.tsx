@@ -1,4 +1,6 @@
 import type { SearchParams } from "../routes/index";
+import { Route } from "../routes/index";
+import { useResponsiveQueryParam } from "../hooks/useResponsiveQueryParam";
 
 interface ProductFiltersProps {
   search: SearchParams;
@@ -50,6 +52,13 @@ const TAGS = [
 export function ProductFilters({ search, onUpdate }: ProductFiltersProps) {
   const selectedTags = search.tags || [];
 
+  // 検索フィールド用の即座に反応するフック（日本語入力の遅延を防ぐ）
+  const [query, setQuery, isQueryPending] = useResponsiveQueryParam<string>(
+    "q",
+    "",
+    Route.fullPath
+  );
+
   const addTag = (tag: string) => {
     if (!selectedTags.includes(tag)) {
       onUpdate({ tags: [...selectedTags, tag] });
@@ -62,6 +71,7 @@ export function ProductFilters({ search, onUpdate }: ProductFiltersProps) {
   };
 
   const clearAll = () => {
+    setQuery("");
     onUpdate({
       q: undefined,
       category: undefined,
@@ -88,8 +98,9 @@ export function ProductFilters({ search, onUpdate }: ProductFiltersProps) {
           id="search"
           type="text"
           placeholder="商品名で検索..."
-          value={search.q || ""}
-          onChange={(e) => onUpdate({ q: e.target.value || undefined })}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className={isQueryPending ? "opacity-70" : ""}
         />
       </div>
 
